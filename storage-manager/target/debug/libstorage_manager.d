@@ -1,0 +1,1 @@
+D:\projrust\storage-manager\target\debug\libstorage_manager.rlib: D:\projrust\storage-manager\src\core\inventory.rs D:\projrust\storage-manager\src\core\mod.rs D:\projrust\storage-manager\src\core\product.rs D:\projrust\storage-manager\src\core\storage_unit.rs D:\projrust\storage-manager\src\core\warehouse.rs D:\projrust\storage-manager\src\lib.rs

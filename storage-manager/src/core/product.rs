@@ -1,8 +1,10 @@
-use crate::{ProductCategory, Describable};
+use crate::{Describable, ProductCategory, core::Warehouse};
 use std::io;
+use uuid::Uuid;
 
+#[derive(Clone)]
 pub struct Product {
-    id : u64,
+    id : Uuid,
     name: String,
     category: ProductCategory,
     cost: f32,
@@ -41,7 +43,7 @@ impl Describable for Product {
 }
 
 impl Product {
-    pub fn new(id: u64) -> Self {
+    pub fn new() -> Self {
         println!("Enter the name of product:");
         
         let mut input = String::new();
@@ -88,7 +90,7 @@ impl Product {
                 }
             }
         };
-
+        let id = Uuid::new_v4();
         Product { 
             id, 
             name, 

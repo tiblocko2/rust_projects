@@ -1,10 +1,11 @@
 use crate::{Describable, StorageType};
 use std::io;
 
+#[derive(Clone, Copy)]
 pub struct StorageUnit {
     id: u64,
     category: StorageType,
-    capacity: u32
+    capacity: u64
 }
 
 impl Describable for StorageUnit {
@@ -37,6 +38,7 @@ impl StorageUnit {
     pub fn new(id: u64) -> Self {
         let mut input = String::new();
         let category = loop {
+            input.clear();
             println!("Choose a type of unit: \n1 - Shelving \n2 - Refrigerated \n3 - Bulk");
             io::stdin()
                 .read_line(&mut input)
@@ -58,7 +60,8 @@ impl StorageUnit {
             };
         };
 
-        let capacity: u32 = loop {
+        let capacity: u64 = loop {
+            input.clear();
             println!("Enter a capacity of unit:");
             io::stdin()
                 .read_line(&mut input)
@@ -79,5 +82,17 @@ impl StorageUnit {
             category, 
             capacity
         }
+    }
+
+    pub fn id(&self) -> u64 {
+        self.id
+    }
+
+    pub fn category(&self) -> &StorageType {
+        &self.category
+    }
+
+    pub fn capacity(&self) -> u64 {
+        self.capacity
     }
 }
