@@ -12,7 +12,7 @@ impl Describable for StorageUnit {
     fn describe(&self) -> String {
         format!(
             "Storade unit ID: {}\n Type: {:?} \n Capacity: {}",
-            self.id, self.capacity, self.capacity
+            self.id, self.category, self.capacity
         )
     }
     fn describe_field(&self, field: &str) -> String {

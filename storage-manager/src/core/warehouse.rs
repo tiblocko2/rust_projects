@@ -1,5 +1,5 @@
 use super::{InventoryItem, StorageUnit};
-use crate::{Describable, core::{Product, inventory}};
+use crate::{Describable, clear_console, core::Product};
 use std::io;
 
 #[derive(Clone)]
@@ -58,9 +58,19 @@ impl Warehouse {
             next_id_unit: 1,
         }
     }
+
     pub fn name(&self) -> &String {
         &self.name
     }
+
+    pub fn units_list(&self) -> &Vec<StorageUnit> {
+        &self.units_list
+    }
+
+    pub fn inventory(&self) -> &Vec<InventoryItem> {
+        &self.inventory
+    }
+
     pub fn add_storage_unit(&mut self) {
         let id = self.next_id_unit;
 
@@ -71,12 +81,14 @@ impl Warehouse {
     }
     pub fn add_inventory_item(&mut self) {
         let mut input = String::new();
-        println!("New item in Warehouse");
+        let name = self.name();
+        println!("New item in {name}");
 
         let good = Product::new();
 
         'main: loop {
             println!("Choose an option:\n 1 - Create new storage unit \n 2 - Use existent");
+            input.clear();
 
             io::stdin()
             .read_line(&mut input)
@@ -115,11 +127,11 @@ impl Warehouse {
                             .sum();
                         let free_space = u.capacity() - occupied;
 
-                        if free_space + count < u.capacity(){
+                        if occupied + count > u.capacity(){
                             println!("Not enough capacity. Choose another unit or count");
                             continue 'main;
                         } else {
-                            self.inventory.push(InventoryItem::new(good, &self.units_list[(self.next_id_unit - 1) as usize], count));
+                            self.inventory.push(InventoryItem::new(good, &self.units_list[(self.next_id_unit - 2) as usize], count));
                             break 'main;
                         }
                     }
@@ -127,86 +139,95 @@ impl Warehouse {
 
                 },
                 "2" => {
-                    println!("Existent units:");
-                    for u in &self.units_list {
-                        Describable::describe(u);
+                    'id_loop: loop {
+                        clear_console();
 
-                        let occupied: u64 = self
-                            .inventory
-                            .iter()
-                            .filter(|item| item.placement().id() == u.id())
-                            .map(|item| item.count())
-                            .sum();
-                        let free_space = u.capacity() - occupied;
+                        println!("Existent units:");
+                        for u in &self.units_list {
+                            let output = Describable::describe(u);
 
-                        println!("Free space: {free_space}");
-                    }
+                            println!("{output}");
 
-                    let id_unit = 'id_loop: loop {
+                            let occupied: u64 = self
+                                .inventory()
+                                .into_iter()
+                                .filter(|item| item.placement().id() == u.id())
+                                .map(|item| item.count())
+                                .sum();
+                            let free_space = u.capacity() - occupied;
+
+                            println!("Free space: {free_space}");
+                        }
+
                         println!("Enter ID of unit");
                         input.clear();
 
                         io::stdin()
-                        .read_line(&mut input)
-                        .expect("Failed to read line");
-                        match input.trim().parse::<u64>() {
-                            Ok(id) => {
-                                let uni ='find_unit: loop {
-                                    match self.units_list.iter().find(|u| u.id() == id) {
-                                        Some(unit) => {
-                                            let count = 'count_correct: loop {
-                                                println!("Enter count of products");
-                                                input.clear();
+                            .read_line(&mut input)
+                            .expect("Failed to read line");
 
-                                                io::stdin()
-                                                    .read_line(&mut input)
-                                                    .expect("Failed to read line");
-
-                                                match input.trim().parse() {
-                                                    Ok(o) => {
-                                                        break 'count_correct o;
-                                                    },
-                                                    Err(_) => {
-                                                        println!("Enter a valid number");
-                                                        continue 'count_correct;
-                                                    }
-                                                }
-                                            };
-
-                                            for u in &self.units_list {
-                                                let occupied: u64 = self
-                                                    .inventory
-                                                    .iter()
-                                                    .filter(|item| item.placement().id() == u.id())
-                                                    .map(|item| item.count())
-                                                    .sum();
-                                                let free_space = u.capacity() - occupied;
-
-                                                if free_space + count < u.capacity(){
-                                                    println!("Not enough capacity. Choose another unit or count");
-                                                    continue 'find_unit;
-                                                } else {
-                                                    self.inventory.push(InventoryItem::new(good, unit, count));
-                                                    break 'find_unit unit;
-                                                }
-                                            }
-                                        },
-                                        None => {
-                                            println!("Unit with this ID doesn't exist. Re-enter");
-                                            continue 'find_unit;
-                                        }
-                                    }
-                                };
-
-                                break 'id_loop uni;
-                            },
+                        let id = match input.trim().parse::<u64>() {
+                            Ok(id) => {id},
                             Err(_) => {
                                 println!("Enter a valid number");
+
                                 continue 'id_loop;
                             }
-                        }
-                        
-                    };
+                        };
+
+                        let unit =match self.units_list.iter().find(|u| u.id() == id) {
+                            Some(unit) => {unit},
+                            None => {
+                                println!("Unit with this ID doesn't exist. Re-enter");
+                                continue 'id_loop;
+                            }
+                        };
+
+                        let count = 'count_correct: loop {
+                            println!("Enter count of products");
+                            input.clear();
+
+                            io::stdin()
+                                .read_line(&mut input)
+                                .expect("Failed to read line");
+
+                            match input.trim().parse() {
+                                Ok(o) => {
+                                    break 'count_correct o;
+                                },
+                                Err(_) => {
+                                    println!("Enter a valid number");
+                                    continue 'count_correct;
+                                }
+                            }
+                        };
+
+                        let occupied: u64 = self
+                            .inventory()
+                            .into_iter()
+                            .filter(|item| item.placement().id() == unit.id())
+                            .map(|item| item.count())
+                            .sum();
+                        let free_space = unit.capacity() - occupied;
+
+                        if occupied + count > unit.capacity(){
+                            println!("Not enough capacity. Choose another unit or count");
+                            input.clear();
+                            println!("Enter any key to exit");
+
+                            io::stdin()
+                                .read_line(&mut input)
+                                .expect("Failed to read line");
+
+                            if !input.trim().is_empty() {
+                                continue 'id_loop;
+                            }      
+                            
+                        } else {
+                            self.inventory.push(InventoryItem::new(good, unit, count));
+                            break 'id_loop;
+                        }                        
+                    }
 
                     break 'main;
                 },

@@ -1,6 +1,7 @@
-use std::io;
-use storage_manager::core::{InventoryItem, StorageUnit, Warehouse, Product};
-use storage_manager::Describable;
+use std::{io};
+use storage_manager::core::{Warehouse, warehouse};
+use storage_manager::{Describable, clear_console};
+
 
 fn main() {
     println!("Warehouse manager");
@@ -10,6 +11,7 @@ fn main() {
 
     'main_prog: loop {
         input.clear();
+        clear_console();
 
         println!("Choose an option:\n 1 - View warehouses \n 2 - Add warehouse \n 3 - Manage warehouse \n 4 - Exit program");
 
@@ -19,9 +21,9 @@ fn main() {
 
         match input.trim() as &str {
             "1" => {
-                for w in warehouse_list.iter().cloned() {
+                for w in warehouse_list.iter() {
                     
-                    let mut output = Describable::describe(&w);
+                    let output = Describable::describe(w);
                     println!("{output}");
                 }
                 continue 'main_prog;
@@ -35,54 +37,150 @@ fn main() {
             },
             "3" => {
                 'manage_loop: loop {
-                    input.clear();
-                    let mut current_warehouse : Warehouse;
-                    println!("Enter name of warehouse to manage");
+                    clear_console();
 
-                    io::stdin()
-                        .read_line(&mut input)
-                        .expect("Failed to read line");
+                    let current_warehouse = 'search_loop: loop {
+                        input.clear();
+                        println!("Enter name of warehouse to manage");
 
-                    let name_search = input.trim().to_string();
+                        io::stdin()
+                            .read_line(&mut input)
+                            .expect("Failed to read line");
 
-                    let curr_warehouse = warehouse_list
-                        .into_iter()
-                        .filter(|item| item.name().clone() == name_search)
-                        .nth(0);
+                        let name_search = input.trim().to_string();
 
-                    current_warehouse = curr_warehouse
-                        .expect("Name not found")
-                        .clone();
+                        let curr_warehouse = warehouse_list
+                            .iter_mut()
+                            .find(|item| item.name().clone() == name_search);
 
-                    let mut output = current_warehouse.describe();
-                    println!("Chosen warehouse is:\n {output}");
+                        match curr_warehouse {
+                            Some(w) => break 'search_loop w,
+                            None => {
+                                println!("Name not found");
+                                continue 'search_loop;
+                            }
+                        }
+                    };
+                    'curr_warehouse_loop: loop {
+                        clear_console();
 
-                    input.clear();
-                    println!("Choose an option:\n 1 - Add storage unit \n 2 - Add inventory item \n 3 - exit");
+                        let mut output = current_warehouse.describe();
+                        println!("Chosen warehouse is:\n {output}");
 
-                    io::stdin()
-                        .read_line(&mut input)
-                        .expect("Failed to read line");
+                        input.clear();
+                        println!("Choose an option:\n 1 - Manage storage units \n 2 - Manage inventory items \n 3 - exit");
 
-                    match input.trim() as &str {
-                        "1" => {
-                            current_warehouse.add_storage_unit();
-                            warehouse_list.push(current_warehouse);
-                            continue 'manage_loop;
-                        },
-                        "2" => {
-                            current_warehouse.add_inventory_item();
-                            warehouse_list.push(current_warehouse);
-                            continue 'manage_loop;
-                        },
-                        "3" => {
-                            break 'manage_loop;
-                        },
-                        _ => {
-                            println!("Invalid option. Exiting...");
-                            continue 'manage_loop;
+                        io::stdin()
+                            .read_line(&mut input)
+                            .expect("Failed to read line");
+
+                        match input.trim() as &str {
+                            "1" => {
+                                'units_manage_loop: loop {
+                                    clear_console();
+
+                                    println!("Managing units \n Choose an option \n 1 - View units \n 2 - Add new unit \n 3 - Exit");
+                                    input.clear();
+
+                                    io::stdin()
+                                        .read_line(&mut input)
+                                        .expect("Failed to read line");
+
+                                    match input.trim() as &str {
+                                        "1" => {
+                                            for u in current_warehouse.units_list() {
+                                                output = Describable::describe(u);
+
+                                                println!("{output}");
+
+                                                let occupied: u64 = current_warehouse
+                                                    .inventory()
+                                                    .iter()
+                                                    .filter(|item| item.placement().id() == u.id())
+                                                    .map(|item| item.count())
+                                                    .sum();
+                                                let free_space = u.capacity() - occupied;
+
+                                                println!("Free space: {free_space}");
+                                            }
+
+                                            input.clear();
+                                            println!("Enter any key to exit");
+
+                                            io::stdin()
+                                                .read_line(&mut input)
+                                                .expect("Failed to read line");
+
+                                            if !input.trim().is_empty() {
+                                                continue 'units_manage_loop;
+                                            }      
+                                        },
+                                        "2" => {
+                                            current_warehouse.add_storage_unit();
+                                            continue 'units_manage_loop;
+                                        },
+                                        "3" => {break 'units_manage_loop},
+                                        _ => {
+                                            println!("Invalid option. Re-enter");
+                                            continue 'units_manage_loop;
+                                        }
+                                    }
+                                }
+                                continue 'curr_warehouse_loop;
+                            },
+                            "2" => {
+                                'inventory_manage_loop: loop {
+                                    clear_console();
+
+                                    println!("Managing inventory \n Choose an option \n 1 - View items \n 2 - Add new item \n 3 - Exit");
+                                    input.clear();
+
+                                    io::stdin()
+                                        .read_line(&mut input)
+                                        .expect("Failed to read line");
+
+                                    match input.trim() as &str {
+                                        "1" => {
+                                            for i in current_warehouse.inventory() {
+                                                output = Describable::describe(i);
+
+                                                println!("{output}");
+                                            }
+
+                                            input.clear();
+                                            println!("Enter any key to exit");
+
+                                            io::stdin()
+                                                .read_line(&mut input)
+                                                .expect("Failed to read line");
+
+                                            if !input.trim().is_empty() {
+                                                continue 'inventory_manage_loop;
+                                            }                              
+                                        },
+                                        "2" => {
+                                            current_warehouse.add_inventory_item();
+                                            continue 'inventory_manage_loop;
+                                        },
+                                        "3" => {break 'inventory_manage_loop},
+                                        _ => {
+                                            println!("Invalid option. Re-enter");
+                                            continue 'inventory_manage_loop;
+                                        }
+                                    }
+                                }
+                                continue 'curr_warehouse_loop;
+                            },
+                            "3" => {
+                                break 'manage_loop;
+                            },
+                            _ => {
+                                println!("Invalid option. Exiting...");
+                                continue 'curr_warehouse_loop;
+                            }
                         }
                     }
+                    
                 }
 
                 continue 'main_prog;

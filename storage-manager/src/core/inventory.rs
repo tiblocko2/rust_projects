@@ -1,5 +1,4 @@
-use crate::core::Warehouse;
-use std::io;
+use crate::Describable;
 
 use super::{Product, StorageUnit};
 
@@ -12,7 +11,7 @@ pub struct InventoryItem {
 
 impl InventoryItem {
     pub fn new(good: Product, plac: &StorageUnit, count: u64) -> Self {
-        let placement = plac.clone();
+        let placement = *plac;
         InventoryItem { 
             good, 
             placement, 
@@ -30,5 +29,14 @@ impl InventoryItem {
 
     pub fn count(&self) -> u64 {
         self.count
+    }
+}
+
+impl Describable for InventoryItem {
+    fn describe(&self) -> String {
+        format!("{} in unit with ID = {} \n Count = {}", self.good.name(), self.placement.id(), self.count)
+    }
+    fn describe_field(&self, field: &str) -> String {
+        format!("Empty trait function")
     }
 }

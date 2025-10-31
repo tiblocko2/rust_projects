@@ -1,4 +1,4 @@
-use crate::{Describable, ProductCategory, core::Warehouse};
+use crate::{Describable, ProductCategory};
 use std::io;
 use uuid::Uuid;
 
@@ -56,9 +56,12 @@ impl Product {
 
         let category = loop {
             println!("Choose a category of the product: \n1 - Electronics \n2 - Clothing \n3 - Food \n4 - Books");
+            input.clear();
+
             io::stdin()
                 .read_line(&mut input)
                 .expect("Failed to read line");
+
             match input.trim() {
                 "1" => {break ProductCategory::Electronics},
                 "2" => {break ProductCategory::Clothing},
@@ -71,12 +74,10 @@ impl Product {
             }
         };
 
-        io::stdin()
-            .read_line(&mut input)
-            .expect("Failed to read line");
-
         let cost: f32 = loop {
-            println!("Enter a capacity of unit:");
+            println!("Enter a cost of product:");
+            input.clear();
+
             io::stdin()
                 .read_line(&mut input)
                 .expect("Error of reading str");
@@ -98,4 +99,10 @@ impl Product {
             cost 
         }
     }
+
+    pub fn name(&self) -> &String {
+        &self.name
+    }
+
+    
 }
