@@ -1,5 +1,5 @@
 use std::{io};
-use storage_manager::core::{Warehouse, warehouse};
+use storage_manager::core::{Warehouse};
 use storage_manager::{Describable, clear_console};
 
 
@@ -23,17 +23,39 @@ fn main() {
             "1" => {
                 for w in warehouse_list.iter() {
                     
-                    let output = Describable::describe(w);
+                    let output = w.describe();
                     println!("{output}");
                 }
-                continue 'main_prog;
+                input.clear();
+                println!("Enter any key to exit");
+
+                io::stdin()
+                    .read_line(&mut input)
+                    .expect("Failed to read line");
+
+                if !input.trim().is_empty() {
+                    continue 'main_prog;
+                }   
             },
             "2" => {
                 let warehouse = Warehouse::new();
 
+                let output = warehouse.describe();
+
                 warehouse_list.push(warehouse);
 
-                continue 'main_prog;
+                println!("Added warehouse \n {output}");
+
+                input.clear();
+                println!("Enter any key to exit");
+
+                io::stdin()
+                    .read_line(&mut input)
+                    .expect("Failed to read line");
+
+                if !input.trim().is_empty() {
+                    continue 'main_prog;
+                }
             },
             "3" => {
                 'manage_loop: loop {
@@ -57,7 +79,16 @@ fn main() {
                             Some(w) => break 'search_loop w,
                             None => {
                                 println!("Name not found");
-                                continue 'search_loop;
+                                input.clear();
+                                println!("Enter any key to exit");
+
+                                io::stdin()
+                                    .read_line(&mut input)
+                                    .expect("Failed to read line");
+
+                                if !input.trim().is_empty() {
+                                    continue 'main_prog;
+                                } 
                             }
                         }
                     };
@@ -132,7 +163,7 @@ fn main() {
                                 'inventory_manage_loop: loop {
                                     clear_console();
 
-                                    println!("Managing inventory \n Choose an option \n 1 - View items \n 2 - Add new item \n 3 - Exit");
+                                    println!("Managing inventory \n Choose an option \n 1 - View items \n 2 - Add new item \n 3 - Find product by name \n 4 - Remove item \n 5 - Exit");
                                     input.clear();
 
                                     io::stdin()
@@ -162,7 +193,43 @@ fn main() {
                                             current_warehouse.add_inventory_item();
                                             continue 'inventory_manage_loop;
                                         },
-                                        "3" => {break 'inventory_manage_loop},
+                                        "3" => {
+                                            loop {
+                                                input.clear();
+
+                                                current_warehouse.find_product_by_name();
+
+                                                input.clear();
+                                                println!("Enter to exit");
+
+                                                io::stdin()
+                                                    .read_line(&mut input)
+                                                    .expect("Failed to read line");
+
+                                                if input.trim().is_empty() {
+                                                    continue 'inventory_manage_loop;
+                                                } else {
+                                                    continue;
+                                                }
+                                            }
+                                        },
+                                        "4" => {
+                                            current_warehouse.remove_product();
+
+                                            input.clear();
+                                            println!("Enter any key to exit");
+
+                                            io::stdin()
+                                                .read_line(&mut input)
+                                                .expect("Failed to read line");
+
+                                            if !input.trim().is_empty() {
+                                                continue 'inventory_manage_loop;
+                                            }
+
+
+                                        }
+                                        "5" => {break 'inventory_manage_loop},
                                         _ => {
                                             println!("Invalid option. Re-enter");
                                             continue 'inventory_manage_loop;

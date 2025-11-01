@@ -2,6 +2,7 @@ use super::{InventoryItem, StorageUnit};
 use crate::{Describable, clear_console, core::Product};
 use std::io;
 
+
 #[derive(Clone)]
 pub struct Warehouse {
     name: String,
@@ -79,6 +80,7 @@ impl Warehouse {
         self.next_id_unit += 1;
         self.units_list.push(unit);
     }
+    
     pub fn add_inventory_item(&mut self) {
         let mut input = String::new();
         let name = self.name();
@@ -125,7 +127,6 @@ impl Warehouse {
                             .filter(|item| item.placement().id() == u.id())
                             .map(|item| item.count())
                             .sum();
-                        let free_space = u.capacity() - occupied;
 
                         if occupied + count > u.capacity(){
                             println!("Not enough capacity. Choose another unit or count");
@@ -208,7 +209,6 @@ impl Warehouse {
                             .filter(|item| item.placement().id() == unit.id())
                             .map(|item| item.count())
                             .sum();
-                        let free_space = unit.capacity() - occupied;
 
                         if occupied + count > unit.capacity(){
                             println!("Not enough capacity. Choose another unit or count");
@@ -240,4 +240,88 @@ impl Warehouse {
         }
     }
 
+    pub fn find_product_by_name(&self) {
+        let mut input = String::new();
+
+        println!("Enter name of product:");
+        input.clear();
+
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to read line");
+
+        println!("Found products:");
+        for p in self
+            .inventory
+            .iter()
+            .filter(|item| item.good().name().clone() == input.trim().to_string()) {
+
+            let mut output = p.describe();
+
+            println!("{output}");
+
+            output = p.good().describe();
+
+            println!("{output}");
+        }
+    }
+
+    pub fn remove_product(&mut self) {
+        let mut count: u32 = 0;
+        for g in self.inventory.iter() {
+            let output = g.good().describe_field("name");
+
+            count += 1;
+
+            println!("{count} : {output}");
+        }
+
+        let number: u32 = 'num_prod: loop{
+            println!("Enter empty to exit \n Enter number of product to remove:");
+            let mut input = String::new();
+
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Failed to read line");
+
+            if !input.to_string().is_empty() {
+                match input.trim().parse() {
+                    Ok(num) => {
+                        break 'num_prod num;
+                    },
+                    Err(_) => {
+                        println!("Invalid number. Re-enter");
+                        continue 'num_prod;
+                    }
+                }
+            } else {
+                break 'num_prod 0;
+            }
+        };
+
+        if number > 0 {
+            let item = &self.inventory()[(number - 1) as usize];
+
+            let output = item.describe();
+
+            println!("You are going to remove \n {output} \n y/n? (n by default)");
+            let mut input = String::new();
+
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Failed to read line");
+
+            match  input.trim() as &str{
+                "y" => {
+                    let removed = self.inventory.remove((number - 1) as usize);
+                    println!("Item {} removed", removed.good().name());
+                },
+                _ => {
+                    println!("Nothing has been removed");
+                }
+            }
+        } else {
+            println!("Nothing has been removed");
+        }
+    }
 }

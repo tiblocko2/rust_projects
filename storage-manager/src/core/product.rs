@@ -19,6 +19,9 @@ impl Describable for Product {
     }
     fn describe_field(&self, field: &str) -> String {
         match field {
+            "name" => {
+                format!("{}", self.name)
+            }
             "id" => {
                 format!(
                     "Product: {} has ID: {}",
@@ -104,5 +107,8 @@ impl Product {
         &self.name
     }
 
-    
+    pub fn id(&self) -> String {
+        let id = &self.id.to_string();
+        id.to_string()
+    }
 }

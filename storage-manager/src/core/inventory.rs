@@ -9,6 +9,8 @@ pub struct InventoryItem {
     count: u64,
 }
 
+
+
 impl InventoryItem {
     pub fn new(good: Product, plac: &StorageUnit, count: u64) -> Self {
         let placement = *plac;

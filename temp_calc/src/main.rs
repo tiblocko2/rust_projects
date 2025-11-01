@@ -29,7 +29,7 @@ fn main() {
             1 => conv_to_celc(),
             2 => conv_to_fahr(),
             3 => break 'main_prog,
-            other => {
+            _ => {
                 println!("Enter correct int");
                 continue 'main_prog;
             }
